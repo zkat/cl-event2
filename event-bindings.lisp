@@ -9,6 +9,10 @@
                 #:defcstruct
                 #:defcfun)
   (:export
+   ;; Misc
+   #:timeval
+   #:tv-sec
+   #:tv-usec
    ;; Event bases
    #:event-base-new
    #:event-base-free
