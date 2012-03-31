@@ -97,11 +97,12 @@
                            ptr)
       (if (null timeout)
           (%event:event-add ptr (cffi:null-pointer))
-          (cffi:with-foreign-object (timeval :long 2)
+          (cffi:with-foreign-object (timeval '%event:timeval)
             (multiple-value-bind (secs usecs)
                 (seconds-to-timeval-values timeout)
-              (setf (cffi:mem-aref timeval :long 0) secs
-                    (cffi:mem-aref timeval :long 1) usecs)
+              (cffi:with-foreign-slots ((%event:tv-sec %event:tv-usec) timeval %event:timeval)
+                (setf %event:tv-sec secs
+                      %event:tv-usec usecs))
               (%event:event-add ptr timeval))))
       (setf (find-event (cffi:pointer-address ptr)) event)
       (tg:finalize event (curry #'%event:event-free ptr))
