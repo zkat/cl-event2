@@ -13,6 +13,8 @@
    #:event-base-new
    #:event-base-free
    #:event-base-dispatch
+   #:event-base-loop
+   #:loop-flag
    #:event-base-loopexit
    #:event-base-loopbreak
    ;; Events
@@ -20,7 +22,8 @@
    #:event-assign
    #:event-free
    #:event-add
-   #:event-get-struct-event-size))
+   #:event-get-struct-event-size
+   #:event-flag))
 (cl:in-package #:%event)
 
 (define-foreign-library event2
@@ -74,11 +77,9 @@
   (event event) (res :int) (ncalls :short))
 
 (defcfun event-add :int
-  ;; TODO - wtf is timeout
-  (event event) (timeout :pointer))
+  (event event) (timeout timeval))
 
 (defcfun event-assign :int
-  ;; TODO - this will need to be wrapped so the `events` arg can be properly ANDed.
   (event event) (event-base event-base) (fd evutil-socket-t)
   (events :short) (callback :pointer) (callback-arg :pointer))
 
