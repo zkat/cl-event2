@@ -7,7 +7,20 @@
                 #:defcenum
                 #:defctype
                 #:defcstruct
-                #:defcfun))
+                #:defcfun)
+  (:export
+   ;; Event bases
+   #:event-base-new
+   #:event-base-free
+   #:event-base-dispatch
+   #:event-base-loopexit
+   #:event-base-loopbreak
+   ;; Events
+   #:event-new
+   #:event-assign
+   #:event-free
+   #:event-add
+   #:event-get-struct-event-size))
 (cl:in-package #:%event)
 
 (define-foreign-library event2
