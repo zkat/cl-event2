@@ -24,6 +24,7 @@
    ;; Events
    #:event-new
    #:event-assign
+   #:event-del
    #:event-free
    #:event-add
    #:event-get-struct-event-size

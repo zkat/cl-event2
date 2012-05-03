@@ -7,7 +7,8 @@
    #:event-base-dispatch
    #:exit-event-loop
    ;; Events
-   #:add-event-handler))
+   #:add-event-handler
+   #:remove-event-handler))
 (cl:in-package #:event)
 
 (defstruct (event-base (:constructor %make-event-base (pointer)))
@@ -107,3 +108,6 @@
       (setf (find-event (cffi:pointer-address ptr)) event)
       (tg:finalize event (curry #'%event:event-free ptr))
       event)))
+
+(defun remove-event-handler (event)
+  (%event:event-del (event-pointer event)))
