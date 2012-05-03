@@ -61,9 +61,8 @@
     (setf (gethash event-id active-events) new-event)))
 
 (cffi:defcallback event-callback :void ((fd :int) (what :short) (event-pointer :pointer))
-  (declare (ignore fd))
   (if-let (event (find-event (cffi:pointer-address event-pointer)))
-    (funcall (event-callback event) what)
+    (funcall (event-callback event) fd what event)
     (error "No active event found while executing event-callback."))
   (values))
 
