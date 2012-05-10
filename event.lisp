@@ -7,8 +7,9 @@
    #:event-base-dispatch
    #:exit-event-loop
    ;; Events
-   #:add-event-handler
-   #:remove-event-handler))
+   #:make-event
+   #:add-event
+   #:remove-event))
 (cl:in-package #:event)
 
 (defstruct (event-base (:constructor %make-event-base (pointer)))
@@ -71,8 +72,8 @@
     (values secs
             (truncate (* usecs 1000000)))))
 
-(defun add-event-handler (event-base fd callback &key
-                          timeout readp writep signalp persistentp edge-triggered-p)
+(defun make-event (event-base fd callback &key
+                   timeout readp writep signalp persistentp edge-triggered-p)
   (let* ((flag-enums (list (when timeout :timeout)
                            (when readp :read)
                            (when writep :write)
@@ -95,18 +96,25 @@
                            flags
                            (cffi:get-callback 'event-callback)
                            ptr)
-      (if (null timeout)
-          (%event:event-add ptr (cffi:null-pointer))
-          (cffi:with-foreign-object (timeval '%event:timeval)
-            (multiple-value-bind (secs usecs)
-                (seconds-to-timeval-values timeout)
-              (cffi:with-foreign-slots ((%event:tv-sec %event:tv-usec) timeval %event:timeval)
-                (setf %event:tv-sec secs
-                      %event:tv-usec usecs))
-              (%event:event-add ptr timeval))))
-      (setf (find-event (cffi:pointer-address ptr)) event)
+
       (tg:finalize event (curry #'%event:event-free ptr))
       event)))
 
-(defun remove-event-handler (event)
-  (%event:event-del (event-pointer event)))
+(defun add-event (event &key timeout &aux (ptr (event-pointer event)))
+  (setf (find-event (cffi:pointer-address ptr)) event)
+  (case (if (null timeout)
+            (%event:event-add (event-pointer event) (cffi:null-pointer))
+            (cffi:with-foreign-object (timeval '%event:timeval)
+              (multiple-value-bind (secs usecs)
+                  (seconds-to-timeval-values timeout)
+                (cffi:with-foreign-slots ((%event:tv-sec %event:tv-usec) timeval %event:timeval)
+                  (setf %event:tv-sec secs
+                        %event:tv-usec usecs))
+                (%event:event-add ptr timeval))))
+    (0 t)
+    (-1 (error "Error while adding event."))))
+
+(defun remove-event (event &aux (ptr (event-pointer event)))
+  (%event:event-del (event-pointer event))
+  (setf (find-event (cffi:pointer-address ptr)) nil)
+  t)
